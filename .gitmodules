@@ -1,0 +1,3 @@
+[submodule "fivem"]
+	path = fivem
+	url = https://github.com/ESX-Org/fivem
