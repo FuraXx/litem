@@ -104,29 +104,55 @@ const restorePackages = () => {
 
   return new Promise((resolve, reject) => {
 
-    const restoreClient = spawn(path.join(__dirname, '../litem-patch/code/tools/ci/nuget.exe').replace('/', '\\'), ['restore', '.\\CitiMono.csproj', '-PackagesDirectory', '.'], {cwd: path.join(__dirname, '../litem-patch/code/build/five')});
+    fs.exists(path.join(__dirname, '../litem-patch/code/build/five/packages'), (exists) => {
 
-    restoreClient.stdout.on('data', data => process.stdout.write(data.toString()));
-    restoreClient.stderr.on('data', data => process.stderr.write(data.toString()));
+      const next = () => {
 
-    restoreClient.on('error', (err) => reject(err));
+        const restoreClient = spawn(path.join(__dirname, '../litem-patch/code/tools/ci/nuget.exe').replace('/', '\\'), ['restore', '.\\CitiMono.csproj', '-PackagesDirectory', './packages'], {cwd: path.join(__dirname, '../litem-patch/code/build/five')});
 
-    restoreClient.on('exit', () => {
-
-      const restoreServer = spawn(path.join(__dirname, '../litem-patch/code/tools/ci/nuget.exe').replace('/', '\\'), ['restore', '.\\CitiMono.csproj', '-PackagesDirectory', '.'], {cwd: path.join(__dirname, '../litem-patch/code/build/server/windows')});
-
-      restoreServer.stdout.on('data', data => process.stdout.write(data.toString()));
-      restoreServer.stderr.on('data', data => process.stderr.write(data.toString()));
+        restoreClient.stdout.on('data', data => process.stdout.write(data.toString()));
+        restoreClient.stderr.on('data', data => process.stderr.write(data.toString()));
     
-      restoreServer.on('error', (err) => reject(err));
+        restoreClient.on('error', (err) => reject(err));
     
-      restoreServer.on('exit', () => {
-        
-        resolve();
+        restoreClient.on('exit', () => {
+    
+          const next = () => {
 
-      });
+            const restoreServer = spawn(path.join(__dirname, '../litem-patch/code/tools/ci/nuget.exe').replace('/', '\\'), ['restore', '.\\CitiMono.csproj', '-PackagesDirectory', './packages'], {cwd: path.join(__dirname, '../litem-patch/code/build/server/windows')});
+      
+            restoreServer.stdout.on('data', data => process.stdout.write(data.toString()));
+            restoreServer.stderr.on('data', data => process.stderr.write(data.toString()));
+          
+            restoreServer.on('error', (err) => reject(err));
+          
+            restoreServer.on('exit', () => {
+              
+              resolve();
+      
+            });
 
+          }
+
+          fs.exists(path.join(__dirname, '../litem-patch/code/build/server/windows/packages'), (exists) => {
+            
+            if(!exists)
+              fs.mkdir(path.join(__dirname, '../litem-patch/code/build/server/windows/packages'), next);
+            else
+              next();
+
+          });
+    
+        });
+
+      }
+
+      if(!exists)
+        fs.mkdir(path.join(__dirname, '../litem-patch/code/build/five/packages'), next);
+      else
+        next();
     });
+
 
   });
 
