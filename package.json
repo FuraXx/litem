@@ -12,7 +12,7 @@
     "create-diff": "node scripts/create-diff.js",
     "apply-diff": "node scripts/apply-diff.js",
     "deps": "node scripts/deps.js",
-    "build-ui": "cd litem-patch/ext/cfx-ui && yarn build && cd ../ui-build && build.cmd",
+    "build-ui": "cd litem-patch/ext/cfx-ui && yarn && yarn build && cd ../ui-build && build.cmd",
     "copy-ui": "cd litem-patch/ext/ui-build && cp-cli data.zip ../../code/bin/five/release/citizen/ui.zip && cp-cli data_big.zip ../../code/bin/five/release/citizen/ui-big.zip",
     "build": "node scripts/build.js && npm run copy-ui",
     "dist": "node scripts/dist.js",
