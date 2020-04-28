@@ -24,7 +24,7 @@ npm run init # will take a while
 npm run apply-diff
 npm run deps
 npm run build-ui # build html stuff for nui
-npm run build # if fails open CitizenMP.sln  
+npm run build # if fails open both CitizenMP.sln, install v142 if asking for and restore nuget packages  
 npm run dist
 npm run litem # with commandline, just for the fun
 
