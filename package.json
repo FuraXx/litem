@@ -16,7 +16,7 @@
     "copy-ui": "cd litem-patch/ext/ui-build && cp-cli data.zip ../../code/bin/five/release/citizen/ui.zip && cp-cli data_big.zip ../../code/bin/five/release/citizen/ui-big.zip",
     "build": "node scripts/build.js && npm run copy-ui",
     "dist": "node scripts/dist.js",
-    "update": "git pull origin master && npm run reset-patches && npm run apply-diff && npm run deps && npm run build && npm run dist",
+    "update": "git pull origin master && npm run reset-patches && npm run apply-diff && npm run build && npm run dist",
     "litem": "cd dist/client && FiveM.exe &"
   },
   "repository": {
