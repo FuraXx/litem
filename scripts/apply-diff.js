@@ -3,8 +3,7 @@ const path         = require('path');
 const { execSync } = require('child_process');
 
 const patch = () => {
-  const out = execSync(`git apply "${path.join(__dirname, '../patch.diff')}"`, {cwd: path.join(__dirname, '../litem-patch')}).toString();
+  execSync(`git apply "${path.join(__dirname, '../patch.diff')}"`, {cwd: path.join(__dirname, '../litem-patch')});
 }
 
-
-console.log(patch());
+console.log('done, if no error above patch as worked');
