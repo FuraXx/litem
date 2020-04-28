@@ -10,7 +10,7 @@ Each LiteM user SHOULD compile the source by themselves to comply with FiveM ToS
 
 - Download and install [Python2.7](https://www.python.org/downloads/release/python-2718/)
 - Download and install [NodeJS](https://nodejs.org/dist/v12.16.2/node-v12.16.2-x64.msi)
-- Download and install [Visual Studio 2019](hhttps://visualstudio.microsoft.com/fr/thank-you-downloading-visual-studio/?sku=Community&rel=16)
+- Download and install [Visual Studio 2019](https://visualstudio.microsoft.com/vs/)
 - Make sur these are checked [screenshot](https://i.imgur.com/ZYZb9Na.png)
 
 ```bash
