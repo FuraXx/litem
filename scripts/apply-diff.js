@@ -6,4 +6,4 @@ const patch = () => {
   execSync(`git apply "${path.join(__dirname, '../patch.diff')}"`, {cwd: path.join(__dirname, '../litem-patch')});
 }
 
-console.log('done, if no error above patch as worked');
+console.log('done, if no error above patch has worked');
