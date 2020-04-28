@@ -47,3 +47,6 @@ Everything in **dist/** folder
 
 - [alt:V](https://altv.mp)
 - [LS:MP](https://los-santos-multiplayer.com)
+
+# Credits
+cfx.re collective https://forum.cfx.re
