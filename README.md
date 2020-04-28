@@ -11,7 +11,7 @@ Each LiteM user SHOULD compile the source by themselves to comply with FiveM ToS
 - Download and install [Python2.7](https://www.python.org/downloads/release/python-2718/)
 - Download and install [NodeJS](https://nodejs.org/dist/v12.16.2/node-v12.16.2-x64.msi)
 - Download and install [Visual Studio 2019](https://visualstudio.microsoft.com/vs/)
-- Download and install [MSYS2](http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe)
+- Download and install [MSYS2](http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe) and install to c:\msys64
 - Make sur these are checked [screenshot](https://i.imgur.com/ZYZb9Na.png)
 
 ```bash
