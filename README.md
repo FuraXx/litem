@@ -8,7 +8,7 @@ We (and you btw) cannot distribute modified binaries who do such thing so we'd m
 
 Each LiteM user SHOULD compile the source by themselves to comply with FiveM ToS
 
-## ⬇️ for for the brave ⬇️
+## ⬇️ for the brave ⬇️
 
 # Installation
 
