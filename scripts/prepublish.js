@@ -20,15 +20,11 @@ repo=${userName}/${repoName}
 
       } else {
 
-        const clientStream = add(path.join(__dirname, '../dist/FiveM-client.zip'), path.join(__dirname, '../dist/client/*'), {
-          recursive: true
-        });
+        const clientStream = add(path.join(__dirname, '../dist/FiveM-client.zip'), path.join(__dirname, '../dist/client/*'), {$bin: sevenBin.path7za, recursive: true});
 
         clientStream.on('end', () => {
 
-          const serverStream = add(path.join(__dirname, '../dist/FiveM-server.zip'), path.join(__dirname, '../dist/server/*'), {
-            recursive: true
-          });
+          const serverStream = add(path.join(__dirname, '../dist/FiveM-server.zip'), path.join(__dirname, '../dist/server/*'), {$bin: sevenBin.path7za, recursive: true});
       
           serverStream.on('end', resolve);
 
