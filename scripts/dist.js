@@ -18,7 +18,7 @@ const copyFiles = () => {
       
           if(err)
             throw err;
-    
+
           resolve();
     
         });
