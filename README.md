@@ -8,6 +8,8 @@ We (and you btw) cannot distribute modified binaries who do such thing so we'd m
 
 Each LiteM user SHOULD compile the source by themselves to comply with FiveM ToS
 
+## ⬇️ for for the brave ⬇️
+
 # Installation
 
 - Download and install [Python2.7](https://www.python.org/downloads/release/python-2718/)
