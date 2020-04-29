@@ -4,10 +4,6 @@
 
 LiteM helps you create a FiveM version not relying on FiveM services.
 
-We (and you btw) cannot distribute modified binaries who do such thing so we'd make it easy for you to generate them.
-
-Each LiteM user SHOULD compile the source by themselves to comply with FiveM ToS
-
 ## ⬇️ for the brave ⬇️
 
 # Installation
