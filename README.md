@@ -34,6 +34,9 @@ npm run update
 
 # When you want to save your changes in diff
 npm run create-diff
+
+# Want to release a ToS-compliant modification ?
+npm run prepublish
 ```
 
 Mandatory thing **sv_lan 1**
