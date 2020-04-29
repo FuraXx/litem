@@ -1,5 +1,7 @@
 # LiteM
 
+## for the lazy: https://github.com/hatixbinaries/litem/releases/latest
+
 LiteM helps you create a FiveM version not relying on FiveM services.
 
 We (and you btw) cannot distribute modified binaries who do such thing so we'd make it easy for you to generate them.
