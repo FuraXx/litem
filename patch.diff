@@ -1,5 +1,5 @@
 diff --git a/code/client/launcher/Bootstrap.cpp b/code/client/launcher/Bootstrap.cpp
-index 70e1e752..6a208832 100644
+index 70e1e752..29b021ef 100644
 --- a/code/client/launcher/Bootstrap.cpp
 +++ b/code/client/launcher/Bootstrap.cpp
 @@ -73,55 +73,58 @@ bool VerifyViability();
@@ -96,11 +96,6 @@ index 70e1e752..6a208832 100644
  #ifdef GTA_NY
  	return Updater_RunUpdate(1, "citiv");
  #else
-@@ -277,3 +280,4 @@ bool Bootstrap_RunInit()
- 
- 	return false;
- }
-+
 diff --git a/code/client/launcher/StdInc.h b/code/client/launcher/StdInc.h
 index b2932bd4..a45eef91 100644
 --- a/code/client/launcher/StdInc.h
@@ -114,7 +109,7 @@ index b2932bd4..a45eef91 100644
  
  #include <array>
 diff --git a/code/client/launcher/Updater.cpp b/code/client/launcher/Updater.cpp
-index d1906794..8ce1d86d 100644
+index d1906794..946088c2 100644
 --- a/code/client/launcher/Updater.cpp
 +++ b/code/client/launcher/Updater.cpp
 @@ -19,6 +19,20 @@
@@ -319,7 +314,7 @@ index d1906794..8ce1d86d 100644
 +		auto name = assets[i]["name"].GetString();
 +		auto url  = assets[i]["browser_download_url"].GetString();
 +		int  size = assets[i]["size"].GetInt();
-+		
++
 +		std::wstring nameWide(name, name + strlen(name));
 +		std::wstring suffix(L"-client.zip");
 +
@@ -374,6 +369,21 @@ index d1906794..8ce1d86d 100644
 +
 +	return true;
 +}
+diff --git a/code/components/citizen-server-impl/src/ServerResources.cpp b/code/components/citizen-server-impl/src/ServerResources.cpp
+index 733ff36e..c436e3a6 100644
+--- a/code/components/citizen-server-impl/src/ServerResources.cpp
++++ b/code/components/citizen-server-impl/src/ServerResources.cpp
+@@ -536,8 +536,9 @@ static InitFunction initFunction([]()
+ 		instance->OnInitialConfiguration.Connect([]()
+ 		{
+ 			configured = true;
++			trace("\n\n^1              dMP     dMP dMMMMMMP dMMMMMP dMMMMMMMMb \n^1             dMP     amr    dMP   dMP     dMP dMP dMP \n^1            dMP     dMP    dMP   dMMMP   dMP dMP dMP  \n^1           dMP     dMP    dMP   dMP     dMP dMP dMP   \n^1          dMMMMMP dMP    dMP   dMMMMMP dMP dMP dMP \n                                     ^7\n\n");
+ 		});
+-
++		
+ 		static auto refreshCommandRef = instance->AddCommand("refresh", [=]()
+ 		{
+ 			ScanResources(instance);
 diff --git a/code/components/gta-streaming-five/src/LoadStreamingFile.cpp b/code/components/gta-streaming-five/src/LoadStreamingFile.cpp
 index df996bb2..57db47f6 100644
 --- a/code/components/gta-streaming-five/src/LoadStreamingFile.cpp
