@@ -1,245 +1,391 @@
-diff --git a/code/client/citicore/FileMapping.Win32.cpp b/code/client/citicore/FileMapping.Win32.cpp
-index d8f456eb..62880027 100644
---- a/code/client/citicore/FileMapping.Win32.cpp
-+++ b/code/client/citicore/FileMapping.Win32.cpp
-@@ -327,7 +327,7 @@ NTSTATUS NTAPI LdrLoadDllStub(const wchar_t* fileName, uint32_t* flags, UNICODE_
- 					PROCESS_INFORMATION pi;
- 					if (!CreateProcessA(MedalPath.c_str(), (MedalPath + " --uninstall").data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
- 					{
--						MessageBoxA(hWnd, "Failed to uninstall Medal TV", "FiveM", 0);
-+						MessageBoxA(hWnd, "Failed to uninstall Medal TV", "LiteM", 0);
- 					}
- 					else
- 					{
 diff --git a/code/client/launcher/Bootstrap.cpp b/code/client/launcher/Bootstrap.cpp
-index 70e1e752..31b29ba5 100644
+index 70e1e752..29b021ef 100644
 --- a/code/client/launcher/Bootstrap.cpp
 +++ b/code/client/launcher/Bootstrap.cpp
-@@ -73,6 +73,8 @@ bool VerifyViability();
+@@ -73,55 +73,58 @@ bool VerifyViability();
  
  bool Bootstrap_DoBootstrap()
  {
-+	return true;
+-	// first check the bootstrapper version
+-	char bootstrapVersion[256];
++	if (GetFileAttributes(MakeRelativeCitPath(L"LiteM.ini").c_str()) == INVALID_FILE_ATTRIBUTES)
++	{
++		// first check the bootstrapper version
++		char bootstrapVersion[256];
+ 
+-	int result = DL_RequestURL(va(CONTENT_URL "/%s/bootstrap/version.txt?time=%lld", GetUpdateChannel(), _time64(NULL)), bootstrapVersion, sizeof(bootstrapVersion));
++		int result = DL_RequestURL(va(CONTENT_URL "/%s/bootstrap/version.txt?time=%lld", GetUpdateChannel(), _time64(NULL)), bootstrapVersion, sizeof(bootstrapVersion));
+ 
+-	if (result != 0)
+-	{
+-		if (GetFileAttributes(MakeRelativeCitPath(L"CoreRT.dll").c_str()) == INVALID_FILE_ATTRIBUTES)
++		if (result != 0)
+ 		{
+-			MessageBox(NULL, va(L"An error (%i, %s) occurred while checking the bootstrapper version. Check if " CONTENT_URL_WIDE L" is available in your web browser.", result, ToWide(DL_RequestURLError())), L"O\x448\x438\x431\x43A\x430", MB_OK | MB_ICONSTOP);
+-			return false;
++			if (GetFileAttributes(MakeRelativeCitPath(L"CoreRT.dll").c_str()) == INVALID_FILE_ATTRIBUTES)
++			{
++				MessageBox(NULL, va(L"An error (%i, %s) occurred while checking the bootstrapper version. Check if " CONTENT_URL_WIDE L" is available in your web browser.", result, ToWide(DL_RequestURLError())), L"O\x448\x438\x431\x43A\x430", MB_OK | MB_ICONSTOP);
++				return false;
++			}
 +
- 	// first check the bootstrapper version
- 	char bootstrapVersion[256];
- 
-diff --git a/code/client/launcher/LauncherConfig.h b/code/client/launcher/LauncherConfig.h
-index 86b3b804..4e8fa3fa 100644
---- a/code/client/launcher/LauncherConfig.h
-+++ b/code/client/launcher/LauncherConfig.h
-@@ -21,7 +21,7 @@
- #define CONTENT_URL_WIDE L"http://content.citizen.re/payne/"
- #define GAME_EXECUTABLE L"MaxPayne3.exe"
- #elif defined(GTA_FIVE)
--#define PRODUCT_NAME L"FiveM"
-+#define PRODUCT_NAME L"LiteM"
- #define CONTENT_URL "https://mirrors.fivem.net/client"
- #define CONTENT_URL_WIDE L"https://mirrors.fivem.net/client"
- #define GAME_EXECUTABLE L"GTA5.exe"
-diff --git a/code/client/launcher/Main.cpp b/code/client/launcher/Main.cpp
-index 6c439c03..b3e5fe63 100644
---- a/code/client/launcher/Main.cpp
-+++ b/code/client/launcher/Main.cpp
-@@ -464,15 +464,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
- 						{
- 							const wchar_t* elevationComplaint = L"FiveM does not support running under elevated privileges. Please change your Windows settings to not run FiveM as administrator.\nThat won't fix anything. The game will exit now.";
- 
--							auto result = MessageBox(nullptr, elevationComplaint, L"FiveM", MB_ABORTRETRYIGNORE | MB_ICONERROR);
-+							auto result = MessageBox(nullptr, elevationComplaint, L"LiteM", MB_ABORTRETRYIGNORE | MB_ICONERROR);
- 
- 							if (result == IDIGNORE)
- 							{
--								MessageBox(nullptr, L"No, you can't ignore this. The game will exit now.", L"FiveM", MB_OK | MB_ICONINFORMATION);
-+								MessageBox(nullptr, L"No, you can't ignore this. The game will exit now.", L"LiteM", MB_OK | MB_ICONINFORMATION);
- 							}
- 							else if (result == IDRETRY)
- 							{
--								MessageBox(nullptr, elevationComplaint, L"FiveM", MB_OK | MB_ICONWARNING);
-+								MessageBox(nullptr, elevationComplaint, L"LiteM", MB_OK | MB_ICONWARNING);
- 							}
- 
- 							return 0;
-diff --git a/code/client/launcher/MiniDump.cpp b/code/client/launcher/MiniDump.cpp
-index 06d64b4c..bd2b4d02 100644
---- a/code/client/launcher/MiniDump.cpp
-+++ b/code/client/launcher/MiniDump.cpp
-@@ -949,7 +949,7 @@ void InitializeDumpServer(int inheritedHandle, int parentPid)
- 			g_entitlementSource = "default";
++			return true;
  		}
  
--		parameters[L"ProductName"] = L"FiveM";
-+		parameters[L"ProductName"] = L"LiteM";
+-		return true;
+-	}
++		//int version = atoi(bootstrapVersion);
++		int version;
++		int exeSize;
++		sscanf(bootstrapVersion, "%i %i", &version, &exeSize);
  
- 		FILE* f = _wfopen(MakeRelativeCitPath(L"citizen/version.txt").c_str(), L"r");
+-	//int version = atoi(bootstrapVersion);
+-	int version;
+-	int exeSize;
+-	sscanf(bootstrapVersion, "%i %i", &version, &exeSize);
++		if (version != BASE_EXE_VERSION && GetFileAttributes(MakeRelativeCitPath(L"nobootstrap.txt").c_str()) == INVALID_FILE_ATTRIBUTES)
++		{
++			return Bootstrap_UpdateEXE(exeSize, version);
++		}
  
-@@ -970,7 +970,7 @@ void InitializeDumpServer(int inheritedHandle, int parentPid)
- 		parameters[L"BuildID"] = L"20170101";
- 		parameters[L"UserID"] = ToWide(g_entitlementSource);
+-	if (version != BASE_EXE_VERSION && GetFileAttributes(MakeRelativeCitPath(L"nobootstrap.txt").c_str()) == INVALID_FILE_ATTRIBUTES)
+-	{
+-		return Bootstrap_UpdateEXE(exeSize, version);
+-	}
++		// after self-updating, attempt to run install mode if needed
++		if (Install_RunInstallMode())
++		{
++			return false;
++		}
  
--        parameters[L"prod"] = L"FiveM";
-+        parameters[L"prod"] = L"LiteM";
-         parameters[L"ver"] = L"1.0";
- #endif
+-	// after self-updating, attempt to run install mode if needed
+-	if (Install_RunInstallMode())
+-	{
+-		return false;
+-	}
++		if (GetFileAttributes(MakeRelativeCitPath(L"CoreRT.dll").c_str()) == INVALID_FILE_ATTRIBUTES)
++		{
++			if (GetFileAttributes(MakeRelativeCitPath(L"GTA5.exe").c_str()) != INVALID_FILE_ATTRIBUTES || GetFileAttributes(MakeRelativeCitPath(L"..\\GTA5.exe").c_str()) != INVALID_FILE_ATTRIBUTES)
++			{
++				MessageBox(NULL, L"Please do not place FiveM.exe in your game folder. Make a new empty folder (for example, on your desktop) instead.", L"O\x448\x438\x431\x43A\x430", MB_OK | MB_ICONSTOP);
++				return false;
++			}
++		}
  
-diff --git a/code/client/launcher/launcher.rc b/code/client/launcher/launcher.rc
-index 4debf725..9be007d7 100644
---- a/code/client/launcher/launcher.rc
-+++ b/code/client/launcher/launcher.rc
-@@ -75,7 +75,7 @@ BEGIN
-         BEGIN
-             VALUE "CompanyName", "cfx-collective"
- #if defined(GTA_FIVE)
--			VALUE "FileDescription", "FiveM"
-+			VALUE "FileDescription", "LiteM"
- #elif defined(IS_RDR3)
- 			VALUE "FileDescription", "RedM"
+-	if (GetFileAttributes(MakeRelativeCitPath(L"CoreRT.dll").c_str()) == INVALID_FILE_ATTRIBUTES)
+-	{
+-		if (GetFileAttributes(MakeRelativeCitPath(L"GTA5.exe").c_str()) != INVALID_FILE_ATTRIBUTES || GetFileAttributes(MakeRelativeCitPath(L"..\\GTA5.exe").c_str()) != INVALID_FILE_ATTRIBUTES)
++		static HostSharedData<CfxState> initState("CfxInitState");
++		initState->ranPastInstaller = true;
++
++		if (!VerifyViability())
+ 		{
+-			MessageBox(NULL, L"Please do not place FiveM.exe in your game folder. Make a new empty folder (for example, on your desktop) instead.", L"O\x448\x438\x431\x43A\x430", MB_OK | MB_ICONSTOP);
+ 			return false;
+ 		}
+ 	}
+ 
+-	static HostSharedData<CfxState> initState("CfxInitState");
+-	initState->ranPastInstaller = true;
+-
+-    if (!VerifyViability())
+-    {
+-        return false;
+-    }
+-
+ #ifdef GTA_NY
+ 	return Updater_RunUpdate(1, "citiv");
  #else
-diff --git a/code/components/citizen-game-main/src/Game.cpp b/code/components/citizen-game-main/src/Game.cpp
-index 1abf5c45..4377805c 100644
---- a/code/components/citizen-game-main/src/Game.cpp
-+++ b/code/components/citizen-game-main/src/Game.cpp
-@@ -125,7 +125,7 @@ public:
+diff --git a/code/client/launcher/StdInc.h b/code/client/launcher/StdInc.h
+index b2932bd4..a45eef91 100644
+--- a/code/client/launcher/StdInc.h
++++ b/code/client/launcher/StdInc.h
+@@ -36,6 +36,7 @@ HWND UI_GetWindowHandle();
  
- 				connIp = hostnameStr;
+ // updater functions
+ bool Updater_RunUpdate(int numCaches, ...);
++bool Updater_RunLiteMUpdate();
+ const char* GetUpdateChannel();
  
--				RunMod("fivem", "");
-+				RunMod("LiteM", "");
+ #include <array>
+diff --git a/code/client/launcher/Updater.cpp b/code/client/launcher/Updater.cpp
+index d1906794..946088c2 100644
+--- a/code/client/launcher/Updater.cpp
++++ b/code/client/launcher/Updater.cpp
+@@ -19,6 +19,20 @@
  
- 				cmp("Starting the target game.", 0, 1);
- 			}
-diff --git a/code/components/font-renderer/src/GtaGameInterface.cpp b/code/components/font-renderer/src/GtaGameInterface.cpp
-index 7295ebc6..dc288058 100644
---- a/code/components/font-renderer/src/GtaGameInterface.cpp
-+++ b/code/components/font-renderer/src/GtaGameInterface.cpp
-@@ -393,7 +393,7 @@ static InitFunction initFunction([] ()
- 					break;
- 			}
+ #include "sha1.h"
  
--			std::wstring brandName = L"FiveM";
-+			std::wstring brandName = L"LiteM";
- 
- 			if (!CfxIsSinglePlayer() && !getenv("CitizenFX_ToolMode"))
- 			{
-diff --git a/code/components/glue/src/ConnectToNative.cpp b/code/components/glue/src/ConnectToNative.cpp
-index 5bc648dc..7e4b1323 100644
---- a/code/components/glue/src/ConnectToNative.cpp
-+++ b/code/components/glue/src/ConnectToNative.cpp
-@@ -921,28 +921,28 @@ static void ProtocolRegister()
- 	swprintf_s(command, L"\"%s\" \"%%1\"", path);
- 
- 	CHECK_STATUS(RegCreateKeyW(HKEY_CURRENT_USER, L"SOFTWARE\\Classes\\fivem", &key));
--	CHECK_STATUS(RegSetValueExW(key, NULL, 0, REG_SZ, (BYTE*)L"FiveM", 6 * 2));
-+	CHECK_STATUS(RegSetValueExW(key, NULL, 0, REG_SZ, (BYTE*)L"LiteM", 6 * 2));
- 	CHECK_STATUS(RegSetValueExW(key, L"URL Protocol", 0, REG_SZ, (BYTE*)L"", 1 * 2));
- 	CHECK_STATUS(RegCloseKey(key));
- 
- 	CHECK_STATUS(RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\Classes\\FiveM.ProtocolHandler", &key));
--	CHECK_STATUS(RegSetValueExW(key, NULL, 0, REG_SZ, (BYTE*)L"FiveM", 6 * 2));
-+	CHECK_STATUS(RegSetValueExW(key, NULL, 0, REG_SZ, (BYTE*)L"LiteM", 6 * 2));
- 	CHECK_STATUS(RegCloseKey(key));
- 
- 	CHECK_STATUS(RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\FiveM", &key));
- 	CHECK_STATUS(RegCloseKey(key));
- 
- 	CHECK_STATUS(RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\FiveM\\Capabilities", &key));
--	CHECK_STATUS(RegSetValueExW(key, L"ApplicationName", 0, REG_SZ, (BYTE*)L"FiveM", 6 * 2));
--	CHECK_STATUS(RegSetValueExW(key, L"ApplicationDescription", 0, REG_SZ, (BYTE*)L"FiveM", 6 * 2));
-+	CHECK_STATUS(RegSetValueExW(key, L"ApplicationName", 0, REG_SZ, (BYTE*)L"LiteM", 6 * 2));
-+	CHECK_STATUS(RegSetValueExW(key, L"ApplicationDescription", 0, REG_SZ, (BYTE*)L"LiteM", 6 * 2));
- 	CHECK_STATUS(RegCloseKey(key));
- 
- 	CHECK_STATUS(RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\FiveM\\Capabilities\\URLAssociations", &key));
--	CHECK_STATUS(RegSetValueExW(key, L"fivem", 0, REG_SZ, (BYTE*)L"FiveM.ProtocolHandler", 22 * 2));
-+	CHECK_STATUS(RegSetValueExW(key, L"LiteM", 0, REG_SZ, (BYTE*)L"FiveM.ProtocolHandler", 22 * 2));
- 	CHECK_STATUS(RegCloseKey(key));
- 
- 	CHECK_STATUS(RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\RegisteredApplications", &key));
--	CHECK_STATUS(RegSetValueExW(key, L"FiveM", 0, REG_SZ, (BYTE*)L"Software\\FiveM\\Capabilities", 28 * 2));
-+	CHECK_STATUS(RegSetValueExW(key, L"LiteM", 0, REG_SZ, (BYTE*)L"Software\\FiveM\\Capabilities", 28 * 2));
- 	CHECK_STATUS(RegCloseKey(key));
- 
- 	CHECK_STATUS(RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\Classes\\FiveM.ProtocolHandler\\shell\\open\\command", &key));
-diff --git a/code/components/glue/src/ConsoleBinding.cpp b/code/components/glue/src/ConsoleBinding.cpp
-index df189f35..b48b813a 100644
---- a/code/components/glue/src/ConsoleBinding.cpp
-+++ b/code/components/glue/src/ConsoleBinding.cpp
-@@ -9,7 +9,7 @@
- #if defined(IS_RDR3)
- #define CONFIG_NAME "redm"
- #elif defined(GTA_FIVE)
--#define CONFIG_NAME "fivem"
-+#define CONFIG_NAME "LiteM"
- #endif
- 
- struct ConsoleWriter : public console::IWriter
-diff --git a/code/components/gta-core-five/include/gta_vtables.h b/code/components/gta-core-five/include/gta_vtables.h
-index 01c8dfde..3cf55818 100644
---- a/code/components/gta-core-five/include/gta_vtables.h
-+++ b/code/components/gta-core-five/include/gta_vtables.h
-@@ -4708,7 +4708,7 @@
- "CLIMB_LARGE",
- "CLIMB_SMALL",
- "CLIP",
--"CLODLightManager",
-+"CLODLiteManager",
- "CLODLights",
- "CLOTH",
- "CLadderMetadataManager",
-diff --git a/code/components/gta-core-five/src/CustomText.cpp b/code/components/gta-core-five/src/CustomText.cpp
-index 12059a4f..30a2261d 100644
---- a/code/components/gta-core-five/src/CustomText.cpp
-+++ b/code/components/gta-core-five/src/CustomText.cpp
-@@ -66,7 +66,7 @@ namespace game
- static HookFunction hookFunction([] ()
++/* LiteM stuff */
++#include <filesystem>
++#include <direct.h>
++
++#include <rapidjson/document.h>
++
++#include <mz.h>
++#include <mz_os.h>
++#include <mz_strm.h>
++#include <mz_strm_buf.h>
++#include <mz_strm_split.h>
++#include <mz_zip.h>
++#include <mz_zip_rw.h>
++
+ struct cache_t
  {
- 	g_textMap[HashString("PM_PANE_LEAVE")] = "Disconnect";
--	g_textMap[HashString("FE_THDR_GTAO")] = "FiveM";
-+	g_textMap[HashString("FE_THDR_GTAO")] = "LiteM";
+ 	std::string name;
+@@ -154,6 +168,11 @@ private:
  
- 	void* getTextPtr = hook::pattern("48 8B CB 8B D0 E8 ? ? ? ? 48 85 C0 0F 95 C0").count(1).get(0).get<void>(5);
- 	hook::set_call(&g_origGetText, getTextPtr);
-diff --git a/code/components/gta-core-five/src/GameInput.cpp b/code/components/gta-core-five/src/GameInput.cpp
-index 72418ae0..ad18715c 100644
---- a/code/components/gta-core-five/src/GameInput.cpp
-+++ b/code/components/gta-core-five/src/GameInput.cpp
-@@ -1051,7 +1051,7 @@ static HookFunction hookFunction([]()
- 		}
- 	});
+ bool Updater_RunUpdate(int numCaches, ...)
+ {
++	if (GetFileAttributes(MakeRelativeCitPath(L"LiteM.ini").c_str()) != INVALID_FILE_ATTRIBUTES)
++	{
++		return Updater_RunLiteMUpdate();
++	}
++
+ 	static char cachesFile[800000];
  
--	game::AddCustomText("PM_PANE_CFX", "FiveM");
-+	game::AddCustomText("PM_PANE_CFX", "LiteM");
+ 	int result = DL_RequestURL(va(CONTENT_URL "/%s/content/caches.xml?timeStamp=%lld", GetUpdateChannel(), _time64(NULL)), cachesFile, sizeof(cachesFile));
+@@ -487,3 +506,223 @@ const char* GetUpdateChannel()
  
- 	bindingManager.Initialize();
- 
-diff --git a/code/components/gta-core-five/src/GameSkeleton.cpp b/code/components/gta-core-five/src/GameSkeleton.cpp
-index 388fdb56..035127bf 100644
---- a/code/components/gta-core-five/src/GameSkeleton.cpp
-+++ b/code/components/gta-core-five/src/GameSkeleton.cpp
-@@ -291,7 +291,7 @@ static const char* const g_initFunctionKnown[] = {
- 	"CInstanceListAssetLoader::Shutdown",
- 	"CIplCullBox",
- 	"CJunctions",
--	"CLODLightManager",
-+	"CLODLiteManager",
- 	"CLODLights",
- 	"CLadderMetadataManager",
- 	"CLoadingScreens",
-diff --git a/code/components/gta-core-rdr3/src/GameSkeleton.cpp b/code/components/gta-core-rdr3/src/GameSkeleton.cpp
-index 5b83d515..73bf1e93 100644
---- a/code/components/gta-core-rdr3/src/GameSkeleton.cpp
-+++ b/code/components/gta-core-rdr3/src/GameSkeleton.cpp
-@@ -304,7 +304,7 @@ static const char* const g_initFunctionKnown[] = {
- 	"CInstanceListAssetLoader::Shutdown",
- 	"CIplCullBox",
- 	"CJunctions",
--	"CLODLightManager",
-+	"CLODLiteManager",
- 	"CLODLights",
- 	"CLadderMetadataManager",
- 	"CLoadingScreens",
+ 	return updateChannel.c_str();
+ }
++
++/* LiteM stuff */
++
++void RemoveFilesFromDirectory(const char* path, const char* ext = "*")
++{
++	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
++
++	for (const auto& entry : recursive_directory_iterator(path))
++	{
++		auto path = entry.path().string();
++
++		if (!entry.is_directory() && (ext == "*" || (path.substr(path.find_last_of(".") + 1) == ext)))
++		{
++			DeleteFileA(path.c_str());
++		}
++	}
++}
++
++int32_t ExtractUpdateEntry(const char* path, const char* pattern, const char* destination)
++{
++	void* reader = NULL;
++	int32_t err = MZ_OK;
++	int32_t err_close = MZ_OK;
++
++	mz_zip_reader_create(&reader);
++	mz_zip_reader_set_pattern(reader, pattern, 1);
++
++	err = mz_zip_reader_open_file(reader, path);
++
++	if (err == MZ_OK)
++	{
++		err = mz_zip_reader_save_all(reader, destination);
++	}
++
++	err_close = mz_zip_reader_close(reader);
++
++	if (err_close != MZ_OK)
++	{
++		err = err_close;
++	}
++
++	mz_zip_reader_delete(&reader);
++
++	return err;
++}
++
++int32_t ExtractUpdate(const char* path)
++{
++	std::wstring fpath = MakeRelativeCitPath(L"LiteM.ini");
++	std::wstring citPathWide = GetAbsoluteCitPath();
++	std::string citPath = std::string(citPathWide.begin(), citPathWide.end());
++	std::wstring cachePathWide = MakeRelativeCitPath(L"cache");
++	std::string cachePath = std::string(cachePathWide.begin(), cachePathWide.end());
++	std::string litemDir = cachePath + "\\litem";
++	std::string updateDir = cachePath + "\\litem\\update";
++
++	mz_zip_file* file_info = NULL;
++	uint32_t ratio = 0;
++	int16_t level = 0;
++	int32_t err = MZ_OK;
++	struct tm tmu_date;
++	const char* string_method = NULL;
++	char crypt = ' ';
++	void* reader = NULL;
++
++
++	mz_zip_reader_create(&reader);
++
++	err = mz_zip_reader_open_file(reader, path);
++
++	if (err != MZ_OK)
++	{
++		mz_zip_reader_delete(&reader);
++		return err;
++	}
++
++	err = mz_zip_reader_goto_first_entry(reader);
++
++	if (err != MZ_OK && err != MZ_END_OF_LIST)
++	{
++		mz_zip_reader_delete(&reader);
++		return err;
++	}
++
++	do
++	{
++		err = mz_zip_reader_entry_get_info(reader, &file_info);
++
++		if (err != MZ_OK)
++		{
++			break;
++		}
++
++		ratio = 0;
++
++		if (file_info->uncompressed_size > 0)
++			ratio = (uint32_t)((file_info->compressed_size * 100) / file_info->uncompressed_size);
++
++		if (file_info->filename != "LiteM.ini")
++		{
++			mz_zip_time_t_to_tm(file_info->modified_date, &tmu_date);
++
++			ExtractUpdateEntry(path, file_info->filename, updateDir.c_str());
++
++			MoveFileA((citPath + file_info->filename).c_str(), (citPath + file_info->filename + ".old").c_str());
++			MoveFileA((updateDir + "\\" + file_info->filename).c_str(), (citPath + file_info->filename).c_str());
++		}
++
++		err = mz_zip_reader_goto_next_entry(reader);
++
++		if (err != MZ_OK && err != MZ_END_OF_LIST)
++		{
++			break;
++		}
++
++	} while (err == MZ_OK);
++
++	mz_zip_reader_delete(&reader);
++
++	if (err == MZ_END_OF_LIST)
++		return MZ_OK;
++
++	return err;
++}
++
++bool Updater_RunLiteMUpdate()
++{
++	std::wstring fpath = MakeRelativeCitPath(L"LiteM.ini");
++	std::wstring citPathWide = GetAbsoluteCitPath();
++	std::string citPath = std::string(citPathWide.begin(), citPathWide.end());
++	std::wstring cachePathWide = MakeRelativeCitPath(L"cache");
++	std::string cachePath = std::string(cachePathWide.begin(), cachePathWide.end());
++	std::string litemDir = cachePath + "\\litem";
++	std::string updateDir = cachePath + "\\litem\\update";
++	std::string zip = litemDir + "\\update.zip";
++
++	mkdir(litemDir.c_str());
++	mkdir(updateDir.c_str());
++
++	RemoveFilesFromDirectory(updateDir.c_str(), "*");
++	RemoveFilesFromDirectory(citPath.c_str(), "old");
++
++	wchar_t repo[128];
++
++	GetPrivateProfileStringW(L"update", L"repo", L"esx-org/litem", repo, 128, fpath.c_str());
++	int clientRelease = (int) GetPrivateProfileIntW(L"update", L"release", -1, fpath.c_str());
++
++	char* rawJSON = new char[65535];
++
++	int result = DL_RequestURL(va("https://api.github.com/repos/%s/releases/latest", std::string(repo, repo + wcslen(repo))), rawJSON, 65535);
++
++	rapidjson::Document doc;
++
++	doc.Parse(rawJSON, 65535);
++
++	delete[] rawJSON;
++
++	int  release = doc["id"].GetInt();
++	auto assets  = doc["assets"].GetArray();
++
++	for (rapidjson::SizeType i = 0; i < assets.Size(); i++)
++	{
++		auto name = assets[i]["name"].GetString();
++		auto url  = assets[i]["browser_download_url"].GetString();
++		int  size = assets[i]["size"].GetInt();
++
++		std::wstring nameWide(name, name + strlen(name));
++		std::wstring suffix(L"-client.zip");
++
++		if (nameWide == (PRODUCT_NAME + suffix))
++		{
++			if (release != clientRelease)
++			{
++				int res = MessageBoxW(NULL, L"An update is available, would you like to download it ?", L"LiteM updater", MB_YESNO);
++
++				switch (res)
++				{
++				case IDYES:
++				{
++					UI_DoCreation();
++					CL_QueueDownload(url, zip.c_str(), size, false);
++					UI_UpdateText(0, L"Updating " PRODUCT_NAME L"...");
++
++					bool retval = DL_RunLoop();
++
++					if (retval)
++					{
++						if (ExtractUpdate(zip.c_str()) != MZ_OK)
++						{
++							MessageBoxW(NULL, L"Update failed", L"LiteM updater", MB_OK);
++							UI_DoDestruction();
++							return true;
++						}
++						else
++						{
++							WritePrivateProfileStringW(L"update", L"release", std::to_wstring(release).c_str(), fpath.c_str());
++							UI_DoDestruction();
++							MessageBoxW(NULL, L"Update done, please restart the game", L"LiteM updater", MB_OK);
++							return false;
++						}
++					}
++					else
++					{
++						MessageBoxW(NULL, L"Update failed", L"LiteM updater", MB_OK);
++						UI_DoDestruction();
++						return true;
++					}
++
++					break;
++				}
++
++				case IDNO:
++					return true;
++				}
++			}
++		}
++	}
++
++	return true;
++}
+diff --git a/code/components/citizen-server-impl/src/ServerResources.cpp b/code/components/citizen-server-impl/src/ServerResources.cpp
+index 733ff36e..c436e3a6 100644
+--- a/code/components/citizen-server-impl/src/ServerResources.cpp
++++ b/code/components/citizen-server-impl/src/ServerResources.cpp
+@@ -536,8 +536,9 @@ static InitFunction initFunction([]()
+ 		instance->OnInitialConfiguration.Connect([]()
+ 		{
+ 			configured = true;
++			trace("\n\n^1              dMP     dMP dMMMMMMP dMMMMMP dMMMMMMMMb \n^1             dMP     amr    dMP   dMP     dMP dMP dMP \n^1            dMP     dMP    dMP   dMMMP   dMP dMP dMP  \n^1           dMP     dMP    dMP   dMP     dMP dMP dMP   \n^1          dMMMMMP dMP    dMP   dMMMMMP dMP dMP dMP \n                                     ^7\n\n");
+ 		});
+-
++		
+ 		static auto refreshCommandRef = instance->AddCommand("refresh", [=]()
+ 		{
+ 			ScanResources(instance);
 diff --git a/code/components/gta-streaming-five/src/LoadStreamingFile.cpp b/code/components/gta-streaming-five/src/LoadStreamingFile.cpp
-index df996bb2..0fe62e66 100644
+index df996bb2..57db47f6 100644
 --- a/code/components/gta-streaming-five/src/LoadStreamingFile.cpp
 +++ b/code/components/gta-streaming-five/src/LoadStreamingFile.cpp
 @@ -578,7 +578,7 @@ static std::string GetBaseName(const std::string& name)
@@ -247,108 +393,27 @@ index df996bb2..0fe62e66 100644
  	{
  #ifndef _DEBUG
 -		if (policyVal.find("[subdir_file_mapping]") != std::string::npos)
-+		// if (policyVal.find("[subdir_file_mapping]") != std::string::npos)
++		if ((GetFileAttributes(MakeRelativeCitPath(L"LiteM.ini").c_str()) != INVALID_FILE_ATTRIBUTES) || policyVal.find("[subdir_file_mapping]") != std::string::npos)
  #endif
  		{
  			std::replace(retval.begin(), retval.end(), '^', '/');
 diff --git a/code/components/net/src/NetLibrary.cpp b/code/components/net/src/NetLibrary.cpp
-index cf240115..0e405514 100644
+index cf240115..48f25e65 100644
 --- a/code/components/net/src/NetLibrary.cpp
 +++ b/code/components/net/src/NetLibrary.cpp
-@@ -344,7 +344,7 @@ void NetLibrary::ProcessOOB(const NetAddress& from, const char* oob, size_t leng
- #endif
- 				, nullptr), va(
- #ifdef GTA_FIVE
--					L"FiveM"
-+					L"LiteM"
- #elif defined(IS_RDR3)
- 					L"RedM"
- #endif
-@@ -1256,70 +1256,7 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
+@@ -1256,7 +1256,11 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
  							steam->SetConnectValue(fmt::sprintf("+connect %s:%d", m_currentServer.GetAddress(), m_currentServer.GetPort()));
  						}
  
 -						if (Instance<ICoreGameInit>::Get()->OneSyncEnabled && !onesyncType.empty())
--						{
--							auto oneSyncFailure = [this, onesyncType]()
--							{
--								OnConnectionError(va("OneSync (policy type %s) is not allowed for this server, or a transient issue occurred.%s",
--									onesyncType,
--									(onesyncType == "onesync_plus" || onesyncType == "onesync_big")
--									? " To use more than 64 slots, you need to have a higher subscription tier than to use up to 64 slots." : ""));
--								m_connectionState = CS_IDLE;
--							};
--
--							auto oneSyncSuccess = [this]()
--							{
--								m_connectionState = CS_INITRECEIVED;
--							};
--
--							m_httpClient->DoGetRequest(fmt::sprintf("%sinfo.json", url), [=](bool success, const char* data, size_t size)
--							{
--								using json = nlohmann::json;
--
--								if (success)
--								{
--									try
--									{
--										json info = json::parse(data, data + size);
--
--										if (info.is_object() && info["vars"].is_object())
--										{
--											auto val = info["vars"].value("sv_licenseKeyToken", "");
--
--											if (!val.empty())
--											{
--												m_httpClient->DoGetRequest(fmt::sprintf("https://policy-live.fivem.net/api/policy/%s/%s", val, onesyncType), [=](bool success, const char* data, size_t size)
--												{
--													if (success)
--													{
--														if (std::string(data, size).find("yes") != std::string::npos)
--														{
--															oneSyncSuccess();
--
--															return;
--														}
--													}
--
--													oneSyncFailure();
--												});
--
--												return;
--											}
--										}
--									}
--									catch (std::exception& e)
--									{
--										trace("1s policy - get failed for %s\n", e.what());
--									}
--
--									oneSyncFailure();
--								}
--							});
--						}
--						else
--						{
--							m_connectionState = CS_INITRECEIVED;
--						}
-+						m_connectionState = CS_INITRECEIVED;
- 
- 						if (node.value("netlibVersion", 1) == 2)
++						if (GetFileAttributes(MakeRelativeCitPath(L"LiteM.ini").c_str()) != INVALID_FILE_ATTRIBUTES)
++						{
++							m_connectionState = CS_INITRECEIVED;
++						}
++						else if (Instance<ICoreGameInit>::Get()->OneSyncEnabled && !onesyncType.empty())
  						{
-diff --git a/code/components/rage-input-five/src/InputHook.cpp b/code/components/rage-input-five/src/InputHook.cpp
-index e082ab51..bf25d9a9 100644
---- a/code/components/rage-input-five/src/InputHook.cpp
-+++ b/code/components/rage-input-five/src/InputHook.cpp
-@@ -54,7 +54,7 @@ LRESULT APIENTRY grcWindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
- {
- 	if (uMsg == WM_CREATE)
- 	{
--		SetWindowText(FindWindow(L"grcWindow", nullptr), (CfxIsSinglePlayer()) ? L"Grand Theft Auto V (FiveM SP)" : L"FiveM");
-+		SetWindowText(FindWindow(L"grcWindow", nullptr), (CfxIsSinglePlayer()) ? L"Grand Theft Auto V (FiveM SP)" : L"LiteM");
- 	}
- 
- 	if (uMsg == WM_ACTIVATEAPP)
+ 							auto oneSyncFailure = [this, onesyncType]()
+ 							{
 diff --git a/data/client/components.json b/data/client/components.json
 index b377d9fb..c34d8367 100644
 --- a/data/client/components.json
@@ -402,163 +467,3 @@ index e98ac9a3..15ea679a 100644
    "citizen:scripting:mono",
    "citizen:scripting:v8",
    "voip-server:mumble",
-diff --git a/ext/cfx-ui/src/app/home/home.component.html b/ext/cfx-ui/src/app/home/home.component.html
-index a0b430b1..b6e238a6 100644
---- a/ext/cfx-ui/src/app/home/home.component.html
-+++ b/ext/cfx-ui/src/app/home/home.component.html
-@@ -1,31 +1,7 @@
- <div class="home">
- 	<div class="welcome">
--		<div class="oi" *ngIf="!currentAccount && accountBeg" [innerHTML]="accountBeg">
--	
--		</div>
--
- 		<div>
--			<h1>Welcome to {{ brandingName }}<span *ngIf="currentAccount">, {{ currentAccount.username }}</span>!</h1>
--			<h2>{{ randomGreeting }}</h2>
--
--			<article [innerHTML]="welcomeMessage" (click)="clickContent($event)">
--				
--			</article>
--
--			<article>
--				<span *ngIf="currentAccount && currentAccount.isStaff">You're wielding the staff! That's... unexpected. </span>
--				<span *ngIf="currentAccount && currentAccount.isPremium">Oh, and thanks for supporting FiveM on Patreon. You're why the project thrives. ⭐</span>
--			</article>
-+			<h1>Welcome to LiteM !</h1>
- 		</div>
--
--		<app-home-tweet class="message" *ngFor="let tweet of communityTweets" [tweet]="tweet">
--
--		</app-home-tweet>
--	</div>
--
--	<div class="feed">		
--		<app-home-tweet class="message" *ngFor="let tweet of officialTweets" [tweet]="tweet">
--
--		</app-home-tweet>
- 	</div>
- </div>
-diff --git a/ext/cfx-ui/src/app/home/home.component.ts b/ext/cfx-ui/src/app/home/home.component.ts
-index 08090809..45df515e 100644
---- a/ext/cfx-ui/src/app/home/home.component.ts
-+++ b/ext/cfx-ui/src/app/home/home.component.ts
-@@ -1,9 +1,7 @@
- import { Component, OnInit } from '@angular/core';
- 
--import { Tweet, TweetService } from './tweet.service';
- 
- import { GameService } from '../game.service';
--import { DiscourseService } from '../discourse.service';
- 
- import { DomSanitizer } from '@angular/platform-browser';
- import { ServersService } from 'app/servers/servers.service';
-@@ -16,8 +14,6 @@ import { ServersService } from 'app/servers/servers.service';
- })
- 
- export class HomeComponent implements OnInit {
--    officialTweets: Tweet[] = [];
--    communityTweets: Tweet[] = [];
- 
-     accountBeg: any;
- 
-@@ -70,95 +66,23 @@ export class HomeComponent implements OnInit {
- 
-     brandingName: string;
- 
--    constructor(private tweetService: TweetService, private gameService: GameService,
--        private discourseService: DiscourseService, private domSanitizer: DomSanitizer,
--        private serversService: ServersService) {
--        discourseService.signinChange.subscribe(user => this.currentAccount = user);
-+    constructor(private gameService: GameService, private domSanitizer: DomSanitizer, private serversService: ServersService) {
-     }
- 
-     ngOnInit() {
-         this.brandingName = this.gameService.brandingName;
--
--        if (this.gameService.gameName === 'rdr3') {
--            // references from RDR2 (that is, Redemption 1) executable
--            this.randomGreetings = [
--                'You\'re running a PRE-RELEASE build, pilgrim!',
--                'Howdy partner. You\'re playing with an executable built *someday*.',
--            ];
--        }
--
--        this.randomGreeting = this.randomGreetings[Math.floor(Math.random() * this.randomGreetings.length)];
--
--        this.fetchTweets();
--        this.fetchWelcome();
--
--        if (this.gameService.gameName !== 'rdr3') {
--            this.fetchBeg();
--        }
--
--        this.currentAccount = this.discourseService.currentUser;
-     }
- 
-     fetchWelcome() {
--        window.fetch((this.gameService.gameName === 'gta5') ?
--            'https://runtime.fivem.net/welcome.html' :
--            `https://runtime.fivem.net/welcome_${this.gameService.gameName}.html`)
--              .then(async res => {
--                  if (res.ok) {
--                      this.welcomeMessage = this.domSanitizer.bypassSecurityTrustHtml(await res.text());
--                  }
--              });
-+
-     }
- 
-     fetchBeg() {
--        window.fetch('https://runtime.fivem.net/account_beg.html')
--              .then(async res => {
--                  if (res.ok) {
--                      this.accountBeg = this.domSanitizer.bypassSecurityTrustHtml(await res.text());
--                  }
--              });
-+
-     }
- 
-     fetchTweets() {
--        const settle = () => {
--            setTimeout(() => {
--                this.serversService.onInitialized();
--
--                (<HTMLDivElement>document.querySelector('.spinny')).style.display = 'none';
--                (<HTMLDivElement>document.querySelector('app-root')).style.opacity = '1';
--            }, 50);
--        };
--
--        this.tweetService
--            .getTweets('https://runtime.fivem.net/tweets.json')
--            .then(tweets => {
--                this.officialTweets = tweets.filter(a => !a.rt_displayname);
--                this.communityTweets = [
--                    ...tweets.filter(a => a.rt_displayname),
--                    ...this.communityTweets
--                ];
--
--                this.communityTweets.sort((a: Tweet, b: Tweet) => b.date.valueOf() - a.date.valueOf());
--
--                // on-settled code
--                settle();
--            });
--
--        this.tweetService
--            .getActivityTweets(
--                this.gameService.getServerHistory()
--                    .filter(s => s.vars && s.vars.activitypubFeed)
--                    .map(s => s.vars.activitypubFeed))
--            .subscribe(tweet => {
--                this.communityTweets = [
--                    tweet,
--                    ...this.communityTweets
--                ];
--
--                this.communityTweets.sort((a: Tweet, b: Tweet) => b.date.valueOf() - a.date.valueOf());
--            });
--
--        setTimeout(() => settle(), 2500);
-+
-     }
- 
-     clickContent(event: MouseEvent) {

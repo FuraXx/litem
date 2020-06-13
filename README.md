@@ -1,10 +1,10 @@
 # LiteM
 
+## for the lazy ➡️ https://github.com/hatixbinaries/litem/releases/latest
+
 LiteM helps you create a FiveM version not relying on FiveM services.
 
-We (and you btw) cannot distribute modified binaries who do such thing so we'd make it easy for you to generate them.
-
-Each LiteM user SHOULD compile the source by themselves to comply with FiveM ToS
+## ⬇️ for the brave ⬇️
 
 # Installation
 
@@ -34,6 +34,9 @@ npm run update
 
 # When you want to save your changes in diff
 npm run create-diff
+
+# Want to release a ToS-compliant modification ?
+npm run prepublish
 ```
 
 Mandatory thing **sv_lan 1**
